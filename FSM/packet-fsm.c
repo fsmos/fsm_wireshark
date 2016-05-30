@@ -25,6 +25,10 @@ static int hf_fsm_lenlogin;
 static int hf_fsm_sctype;
 static int hf_fsm_ID_Signal;
 static int hf_fsm_codec;
+static int hf_fsm_lang;
+static int hf_fsm_pin;
+static int hf_fsm_datatype;
+static int hf_fsm_numzap;
 
 
 static const value_string fsm_packettypes[] = {
@@ -148,313 +152,349 @@ static void dissect_fsm(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
         ti = proto_tree_add_item(tree, proto_fsm, tvb, 0, -1, FALSE);
         fsm_tree = proto_item_add_subtree(ti, ett_fsm);
         proto_tree_add_item(fsm_tree, hf_fsm_pkt_type, tvb, 0, 1, FALSE);
+        proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 1, 1, FALSE);
+        proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 2, 2, FALSE);
     switch(packet_version)
     {
           case RegDevice: ///< Регистрация устройства
-          proto_tree_add_item(fsm_tree, hf_fsm_device_type,tvb, 1, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_vid,tvb, 2, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_podvid,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_kod,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 5, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 7, 1, FALSE);
+          
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_device_type,tvb, 4, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_device_vid,tvb, 5, 1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_device_podvid,tvb, 6, 1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_device_kod,tvb, 7, 1, FALSE);
+          
+         
           break;
           case AnsRegDevice: ///< Подтверждение регистрации
-            proto_tree_add_item(fsm_tree, hf_fsm_device_type,tvb, 1, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_vid,tvb, 2, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_podvid,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_kod,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 5, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 7, 1, FALSE);
+       
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_device_type,tvb, 4, 1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_device_vid,tvb, 5, 1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_device_podvid,tvb, 6, 1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_device_kod,tvb, 7, 1, FALSE);
           break;
           case DelLisr: ///< Удаление устройства из списка
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 3, 1, FALSE);
+
+
           break;
           case AnsDelList: ///< Подтверждение удаления устройства из списка
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 3, 1, FALSE);
+
+
           break;
           case AnsPing:///< Пинг
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 3, 1, FALSE);
+
+
           break;
           case SendCmdToDevice:///< Отправка команды устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 6, -1, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
           break;
           case AnsSendCmdToDevice: ///< Подтверждение приёма команды устройством
-           proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 4, 1, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 6, 2, FALSE);
+
           break;
           case RqToDevice:///< Ответ на команду устройством
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 6, -1, FALSE);
+    
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
           break;
           case AnsRqToDevice: ///< Подтверждение приёма команды сервером
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 4, 1, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 6, 2, FALSE);
           break;
           case SendCmdToServer: ///< Отправка команды серверу
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 6, -1, FALSE);
-           break;
+
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_cmd_count,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
+          break;
           case SendTxtMassage: ///< Отправка текстового сообщения
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 6, -1, FALSE);
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lang,tvb, 6, 2, FALSE);
+  
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
            break;
           case AnsSendTxtMassage: ///< Подтверждение приёма текстового сообщения
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);
+ 
+
+           proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 4, 2, FALSE);
+           proto_tree_add_item(fsm_tree, hf_fsm_lang,tvb, 6, 2, FALSE);
            break;
           case SendTxtEncMassage: ///< Отправка зашифрованного текстового сообщения
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 6, -1, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lang,tvb, 10, 2, FALSE);
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 12, -1, FALSE);
            break;
           case AnsSendTxtEncMassage: ///< Подтверждение приёма зашифрованного текстового сообщения
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 4, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE); 
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
           break;
           case SendAudio:///< Передача аудио данных
-           proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_codec,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 4, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 6, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 7, -1, FALSE);
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_codec,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+     
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
           break;
           case SendVideo:///< Передача видео данных
-             proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_codec,tvb, 3, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 4, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 6, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 7, -1, FALSE);
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_codec,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+     
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
            break;
           case SendBinData:///< Передача бинарных данных
-             proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 6, -1, FALSE);
+
+
+          proto_tree_add_item(fsm_tree, hf_fsm_codec,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_datatype,tvb, 6, 2, FALSE);
+     
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 8, -1, FALSE);
+           break;
            break;
           case AnsSendBinData:///< Подтверждение приёма бинарных данных
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 5, 1, FALSE);       
-           break;
+
+          proto_tree_add_item(fsm_tree, hf_fsm_codec,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_datatype,tvb, 6, 2, FALSE);    
+          break;
           case SendSMS: ///< Отправить СМС
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 30, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 32, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 33, -1, FALSE);
+     
+
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE); 
+
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 8, 16, FALSE);
+       
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 24, -1, FALSE);
            break;
           case SendAnsSMS: ///< Подтверждение СМС
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 30, 1, FALSE);       
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE); 
+
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 8, 16, FALSE);
           break;
           case SendSMStoDev: ///< Передача СМС устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 30, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 32, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 33, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE); 
+
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 8, 16, FALSE);
+       
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 24, -1, FALSE);
           break;
           case SendAnsSMStoDev: ///< Подтверждение СМС устройством
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 30, 1, FALSE); 
+           proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE); 
+
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 8, 16, FALSE);
           break;
           case SendEncSMS: ///< Отправить зашифрованного СМС
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 30, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 31, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 32, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 33, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE); 
+
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 10, 2, FALSE);
+         
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 12, 16, FALSE);
+       
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 28, -1, FALSE);
+         
+         
           break;
           case SendAnsEncSMS: ///<Подтверждение зашифрованного СМС
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 30, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 8, 16, FALSE);
           break;
           case SendEncSMStoDev:///< Отправить зашифрованного СМС устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 30, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 31, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 32, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 33, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE); 
+
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 10, 2, FALSE);
+         
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 12, 16, FALSE);
+       
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 28, -1, FALSE);
           break;
           case SendAnsEncSMStoDev:///< Подтверждение зашифрованного СМС  устройства
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 5, 15, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 30, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_lennumber,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_number,tvb, 8, 16, FALSE);
           break;
           case SendEmail:  ///< Отправка email
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 40, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 42, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 43, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 8, 32, FALSE);
+             
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 40, -1, FALSE);
           break;
           case AnsEmail: ///<Подтверждение email
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);       
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 8, 32, FALSE);  
           break;
           case SendEmailtoDevice: ///<Передача email устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 40, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 42, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 43, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 8, 32, FALSE);
+             
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 40, -1, FALSE);
           break;
           case AnsSendEmailtoDevice: ///<Подтверждение email устройством
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 8, 32, FALSE);  
           break;
           case SendEncEmail: ///<Отправить зашифрованного email
-           proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 40, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 41, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 42, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 43, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+         
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 10, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 12, 32, FALSE);
+             
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 44, -1, FALSE);
           break;
           case AnsEncEmail: ///<Подтверждение зашифрованного email
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+           proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+           proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 6, 2, FALSE);
+
+           proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 8, 32, FALSE);
           break;
           case SendEncEmailtoDev: ///< Отправить зашифрованного email устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 40, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 41, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 42, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 43, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+         
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 10, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 12, 32, FALSE);
+             
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 44, -1, FALSE);
           break;
           case AnsEncEmailtoDev: ///< Подтверждение зашифрованного email   устройства
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+          proto_tree_add_item(fsm_tree, hf_fsm_lenemail,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_email,tvb, 8, 32, FALSE);
           break;
           case SocSend: ///< Отправка сообщение в социальную сеть
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 40, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 41, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 43, 1, FALSE);       
+          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_numzap,tvb, 10, 2, FALSE);  
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 12, 32, FALSE);
+             
           proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 44, -1, FALSE);
           break;
           case AnsSocSend: ///< Подтверждение сообщения в социальную сеть
-           proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 6, 2, FALSE);
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 8, 32, FALSE);
           break;
           case SocSendtoDev:///< Передача сообщения в социальную сеть устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 40, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 41, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 43, 1, FALSE);       
+            proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_numzap,tvb, 10, 2, FALSE);  
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 12, 32, FALSE);
+             
           proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 44, -1, FALSE);
           break;
           case AnsSocSendtoDev:///< Подтверждение   сообщения в социальную сеть устройством
-                  proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+         proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 6, 2, FALSE);
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 8, 32, FALSE);
           break;
           case SocEncSend: ///< Отправить зашифрованного сообщения в социальную сеть
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 40, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 41, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 42, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 43, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 44, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+          
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 10, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 12, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_numzap,tvb, 14, 2, FALSE);  
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 16, 32, FALSE);
+             
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 48, -1, FALSE);
           break;
           case AnsSocEncSend: ///< Подтверждение зашифрованного сообщения в социальную сеть
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+           proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 6, 2, FALSE);
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 8, 32, FALSE);
           break;
           case SocEncSendtoDev: ///<	Отправить зашифрованного сообщения в социальную сеть устройству
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 40, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 41, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_len8,tvb, 42, 1, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 43, 1, FALSE);       
-          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 44, -1, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_len16,tvb, 6, 2, FALSE);
+          
+          proto_tree_add_item(fsm_tree, hf_fsm_alg,tvb, 8, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_pin,tvb, 10, 2, FALSE);
+
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 12, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_numzap,tvb, 14, 2, FALSE);  
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 16, 32, FALSE);
+             
+          proto_tree_add_item(fsm_tree, hf_fsm_Data,tvb, 48, -1, FALSE);
           break;
           case AnsSocEncSendtoDev: ///<	Подтверждение зашифрованного сообщения в социальную сеть   устройства
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 5, 25, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 40, 1, FALSE);  
+           proto_tree_add_item(fsm_tree, hf_fsm_lenlogin,tvb, 4, 2, FALSE);
+          proto_tree_add_item(fsm_tree, hf_fsm_sctype,tvb, 6, 2, FALSE);
+ 
+          proto_tree_add_item(fsm_tree, hf_fsm_login,tvb, 8, 32, FALSE); 
           break;
           case Alern: ///<Тревога
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 4, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 4,4, FALSE);
           break;
           case Warning: ///<Предупреждение
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 4, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 4,4, FALSE);
           break;
           case Trouble: ///<Сбой
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 4, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 4,4, FALSE);
           break;
           case Beep: ///<Звук
-          proto_tree_add_item(fsm_tree, hf_fsm_device_id,tvb, 1, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 3, 2, FALSE);
-          proto_tree_add_item(fsm_tree, hf_fsm_crc,tvb, 4, 1, FALSE); 
+          proto_tree_add_item(fsm_tree, hf_fsm_ID_Signal,tvb, 4,4, FALSE);
           break;
     }
 }
@@ -496,7 +536,7 @@ void proto_register_fsm(void)
         },
         { &hf_fsm_device_id,
             { "ID Устройства", "fsm.device.id",
-            FT_UINT16, BASE_DEC,
+            FT_UINT16, BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
@@ -526,7 +566,7 @@ void proto_register_fsm(void)
         },
         { &hf_fsm_len16,
             { "Размер пакета", "fsm.len",
-            FT_UINT16, BASE_DEC,
+            FT_UINT16, BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
@@ -538,13 +578,13 @@ void proto_register_fsm(void)
         },
           { &hf_fsm_alg,
             { "Алгоритм шифрования", "fsm.alg",
-            FT_UINT8, BASE_HEX,
+            FT_UINT16, BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
         { &hf_fsm_codec,
             { "Кодек", "fsm.codec",
-            FT_UINT8,BASE_HEX,
+            FT_UINT16,BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
@@ -556,7 +596,7 @@ void proto_register_fsm(void)
         },
         { &hf_fsm_lennumber,
             { "Длина Номера", "fsm.number.len",
-            FT_UINT8,BASE_DEC,
+            FT_UINT16,BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
@@ -568,7 +608,7 @@ void proto_register_fsm(void)
         },
         { &hf_fsm_lenemail,
             { "Длина email", "fsm.email.len",
-            FT_UINT8,BASE_DEC,
+            FT_UINT16,BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
@@ -580,19 +620,43 @@ void proto_register_fsm(void)
         },
         { & hf_fsm_lenlogin,
             { "Длина Login", "fsm.login.len",
-            FT_UINT8,BASE_DEC,
+            FT_UINT16,BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
         { & hf_fsm_sctype,
             { "Тип Соцсети", "fsm.login.soctype",
-            FT_UINT8,BASE_DEC,
+            FT_UINT16,BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
         { & hf_fsm_ID_Signal,
-            { "Тип Соцсети", "fsm.signal.id",
-            FT_UINT8,BASE_DEC,
+            { "Ид сигнала", "fsm.signal.id",
+            FT_UINT32,BASE_HEX,
+            NULL, 0x0,
+            NULL, HFILL }
+        },
+        { & hf_fsm_lang,
+            { "Язык", "fsm.lang",
+            FT_UINT16,BASE_HEX,
+            NULL, 0x0,
+            NULL, HFILL }
+        },
+        { & hf_fsm_pin,
+            { "Пинкод", "fsm.alg.pin",
+            FT_UINT16,BASE_HEX,
+            NULL, 0x0,
+            NULL, HFILL }
+        },
+        { & hf_fsm_datatype,
+            { "Тип данных", "fsm.datatype",
+            FT_UINT16,BASE_HEX,
+            NULL, 0x0,
+            NULL, HFILL }
+        },
+        { & hf_fsm_numzap,
+            { "Номер записи", "fsm.num_zap",
+            FT_UINT16,BASE_HEX,
             NULL, 0x0,
             NULL, HFILL }
         },
